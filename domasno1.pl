@@ -1,6 +1,6 @@
 % Zadacha 1
 dolzina([], 0).
-dolzina([A|O], N):-dolzina(O, N1), N is N1+1.
+dolzina([_|O], N):-dolzina(O, N1), N is N1+1.
 
 neparen(L):-dolzina(L,N), N mod 2 =:= 1. 
 
@@ -12,17 +12,6 @@ prevrti([X|L1], L2):-prevrti(L1, L), dodadi(L,[X],L2).
 palindrom(L):-prevrti(L, L1), L1 = L.
 
 neparen_palindrom(L):-neparen(L), palindrom(L).
-
-% Zadacha 2
-podlista([X|L1], [X|L2]):-prefiks(L1, L2).
-podlista(L1, [_|L2]):-podlista(L1, L2),!.
-prefiks([], _):-!.
-prefiks([x|L1], [X|L2]):-prefiks(L1, L2).
-
-broj_pojav([],X,0).
-
-
-naj_podniza(L1, N, L2):-podlista(L1, N, L2).
 
 % Zadacha 3
 
@@ -83,3 +72,60 @@ delenje(Bin1, Bin2, Rezultat) :-
     bin_dec(Bin2, Dec2),
     Kolichnik is Dec1 // Dec2,
     dec_bin(Kolichnik, Rezultat).
+
+% Zadacha 6
+otstrani_glava([_|R], R).
+
+transponirana([], []).
+transponirana([Red|Redici], MT):-transponirana(Red, [Red|Redici], MT).
+
+transponirana([], _, []).
+transponirana([_|OstKoloni], Redici, [Kolona|MT]):-
+  maplist(nth1(1), Redici, Kolona),
+  maplist(otstrani_glava, Redici, OstRedici),
+  transponirana(OstKoloni, OstRedici, MT).
+
+mat_proizvod(X, Y, Proizvod):- Proizvod is X*Y.
+
+dot_product(R1, R2, Proizvod):-
+  maplist(mat_proizvod, R1, R2, Proizvodi),
+  sum_list(Proizvodi, Proizvod).
+
+redica_mnozhenje(M1, Redica, RezRed):-
+  maplist(dot_product(Redica), M1, RezRed).
+
+mat_mnozhenje(Matrica, MatT, Rezultat):-
+  maplist(redica_mnozhenje(Matrica), MatT, Rezultat).
+
+presmetaj(Matrica, Rezultat):- mat_mnozhenje(Matrica, Matrica, Rezultat).
+
+% Zadacha 7
+
+otstrani_duplikati([], []).
+otstrani_duplikati([SubL|L], O):-
+  member(SubL, L), !,
+  otstrani_duplikati(L, O).
+otstrani_duplikati([SubL|L], [SubL|O]):-
+  otstrani_duplikati(L, O).
+
+redosled_pomoshnik([], []).
+redosled_pomoshnik([E1|L1], [E2|L2]):-
+  (E1 > E2; (E1 =:= E2, redosled_pomoshnik(L1, L2))).
+
+proveri_redosled(L1, L2):-
+  length(L1, D1),
+  length(L2, D2),
+  (D1 > D2 ; D1 =:= D2, redosled_pomoshnik(L1, L2)).
+
+insert_opagjachki(L, [], [L]).
+insert_opagjachki(L, [F|R], [L, F|R]):-
+  proveri_redosled(L, F), !.
+insert_opagjachki(L, [F|R], [F|Sortirana]):-
+  insert_opagjachki(L, R, Sortirana).
+
+sortiraj_opagjachki([], []).
+sortiraj_opagjachki([SubL|L], O):-
+  sortiraj_opagjachki(L, Temp),
+  insert_opagjachki(SubL, Temp, O).
+
+transform(Input, Output):- otstrani_duplikati(Input, PoedinechniListi), sortiraj_opagjachki(PoedinechniListi, Output).
